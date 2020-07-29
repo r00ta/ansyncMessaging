@@ -1,5 +1,8 @@
 package org.redhat.developer.models;
 
-public class RequestDto {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+public class RequestDto {
+    @JsonProperty("executionId")
+    public String executionId;
 }

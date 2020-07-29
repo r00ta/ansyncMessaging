@@ -1,9 +1,7 @@
 package org.redhat.developer;
 
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -49,13 +47,16 @@ public class KafkaHandler {
             return message.ack();
         }
 
-        service.doSomethingAsync(Request.from(dto));
-        sendEvent(new ResultDto());
+        service.doSomethingAsync(Request.from(dto))
+                .thenApplyAsync(x -> sendEvent(ResultDto.from(x)));
+
+        System.out.println("out");
+
         return message.ack();
     }
 
     // Outgoing
-    public void sendEvent(ResultDto result) {
+    public CompletableFuture<Boolean> sendEvent(ResultDto result) {
         LOGGER.info("Consumer messaging returns result ");
         String payload = null;
         try {
@@ -66,6 +67,7 @@ public class KafkaHandler {
         }
 
         eventSubject.onNext(payload);
+        return CompletableFuture.completedFuture(true);
     }
 
     @Outgoing("trusty-explainability-result")
