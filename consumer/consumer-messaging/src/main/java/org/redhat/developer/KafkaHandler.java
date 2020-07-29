@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.subjects.PublishSubject;
+import org.eclipse.microprofile.context.ManagedExecutor;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
@@ -23,6 +24,9 @@ import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class KafkaHandler {
+
+    @Inject
+    ManagedExecutor executor;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaHandler.class);
 
@@ -47,12 +51,9 @@ public class KafkaHandler {
             return message.ack();
         }
 
-        service.doSomethingAsync(Request.from(dto))
-                .thenApplyAsync(x -> sendEvent(ResultDto.from(x)));
-
-        System.out.println("out");
-
-        return message.ack();
+        return service.doSomethingAsync(Request.from(dto))
+                .thenApplyAsync(x -> sendEvent(ResultDto.from(x)), executor)
+                .thenAcceptAsync(x -> message.ack(), executor);
     }
 
     // Outgoing
