@@ -17,6 +17,7 @@
     <module>consumer-core</module>
     <module>consumer-rest</module>
     <module>consumer-messaging</module>
+    <module>consumer-api</module>
   </modules>
 
 
